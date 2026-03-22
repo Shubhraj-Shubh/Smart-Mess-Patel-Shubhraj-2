@@ -49,6 +49,16 @@ export default async function AdminNavbar() {
                 </Link>
               </li>
               <li>
+                <Link href="/remove-boarders">
+                  <Button
+                    type="button"
+                    className="bg-secondary text-primary hover:bg-secondary"
+                  >
+                    Remove Boarders
+                  </Button>
+                </Link>
+              </li>
+              <li>
                 <Link href="/allcomplaints">
                   <Button
                     type="button"

@@ -390,6 +390,68 @@ export async function GenerateNewBoarderQRSecret(_id: string) {
   }
 }
 
+export async function DeactivateBoardersByRollNos(rollNos: string[]) {
+  try {
+    const normalizedRollNos = Array.from(
+      new Set(
+        rollNos
+          .map((rollNo) => rollNo.trim())
+          .filter((rollNo) => rollNo.length > 0)
+      )
+    );
+
+    if (normalizedRollNos.length === 0) {
+      return {
+        success: false,
+        message: "No valid roll numbers provided",
+      };
+    }
+
+    const matchingBoarders = await Boarder.find(
+      { rollno: { $in: normalizedRollNos } },
+      { rollno: 1, active: 1 }
+    ).lean();
+
+    const foundRollNos = new Set(matchingBoarders.map((b) => b.rollno));
+    const notFoundRollNos = normalizedRollNos.filter(
+      (rollNo) => !foundRollNos.has(rollNo)
+    );
+
+    const activeRollNos = matchingBoarders
+      .filter((boarder) => boarder.active)
+      .map((boarder) => boarder.rollno);
+
+    const alreadyInactiveCount = matchingBoarders.length - activeRollNos.length;
+
+    let updatedCount = 0;
+    if (activeRollNos.length > 0) {
+      const updateResult = await Boarder.updateMany(
+        { rollno: { $in: activeRollNos } },
+        { $set: { active: false } }
+      );
+      updatedCount = updateResult.modifiedCount || 0;
+    }
+
+    revalidatePath('/boarder');
+    revalidatePath('/see-boarders');
+
+    return {
+      success: true,
+      updatedCount,
+      alreadyInactiveCount,
+      notFoundRollNos,
+      totalProcessed: normalizedRollNos.length,
+      message: "Boarder status updated successfully",
+    };
+  } catch (error) {
+    console.error("Error deactivating boarders by roll numbers:", error);
+    return {
+      success: false,
+      message: "Failed to deactivate boarders",
+    };
+  }
+}
+
 // Representative Actions
 type RepresentativeType = {
   name: string;
