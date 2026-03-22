@@ -21,8 +21,9 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Html5Qrcode } from "html5-qrcode";
-import { EditBoarder } from "@/actions/adminActions";
+import { EditBoarder, GenerateNewBoarderQRSecret } from "@/actions/adminActions";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useState } from "react";
 
 const boarderSchema = z.object({
   name: z.string().min(2, {
@@ -78,6 +79,8 @@ export default function EditBoarderComponent({
 }: {
   boarder: BoarderType;
 }) {
+  const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+
   const form = useForm<z.infer<typeof boarderSchema>>({
     resolver: zodResolver(boarderSchema),
     defaultValues: {
@@ -108,6 +111,29 @@ export default function EditBoarderComponent({
         console.warn(`Error scanning: ${error}`);
       }
     );
+  };
+
+  const generateNewQR = async () => {
+    try {
+      setIsGeneratingQR(true);
+      const res = await GenerateNewBoarderQRSecret(boarder._id);
+
+      if (!res.success || !res.secret) {
+        toast.error(res.message || "Failed to generate new QR");
+        return;
+      }
+
+      form.setValue("secret", res.secret, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      toast.success("New QR generated and saved to database");
+    } catch (error) {
+      console.error("Error generating new QR:", error);
+      toast.error("Failed to generate new QR");
+    } finally {
+      setIsGeneratingQR(false);
+    }
   };
 
   async function onSubmit(values: z.infer<typeof boarderSchema>) {
@@ -264,6 +290,14 @@ export default function EditBoarderComponent({
                       className="hover:text-primary"
                     >
                       Replace QR
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={generateNewQR}
+                      disabled={isGeneratingQR}
+                      className="hover:text-primary"
+                    >
+                      {isGeneratingQR ? "Generating..." : "Generate New QR"}
                     </Button>
                     <Button type="submit" className="hover:text-primary">
                       Submit

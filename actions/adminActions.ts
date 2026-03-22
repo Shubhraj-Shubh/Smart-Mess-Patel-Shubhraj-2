@@ -4,6 +4,7 @@ import Boarder from "@/models/Boarder";
 import Worker from "@/models/WorkerModel";
 import Representative from "@/models/RepresentativeModel";
 import { revalidatePath } from "next/cache";
+import crypto from "crypto";
 
 export async function GetAllWorkers() {
   try {
@@ -355,6 +356,37 @@ export async function EditBoarder(_id: string, boarder: BoarderType) {
   } catch (error) {
     console.error("Error updating boarder:", error);
     return { success: false };
+  }
+}
+
+export async function GenerateNewBoarderQRSecret(_id: string) {
+  try {
+    const secret = crypto.randomBytes(16).toString("hex");
+
+    const updatedBoarder = await Boarder.findByIdAndUpdate(
+      _id,
+      { $set: { secret } },
+      { new: true }
+    );
+
+    if (!updatedBoarder) {
+      return {
+        success: false,
+        message: "Boarder not found",
+      };
+    }
+
+    return {
+      success: true,
+      secret,
+      message: "New QR secret generated successfully",
+    };
+  } catch (error) {
+    console.error("Error generating new boarder QR secret:", error);
+    return {
+      success: false,
+      message: "Failed to generate new QR",
+    };
   }
 }
 

@@ -24,6 +24,36 @@ type PopulatedEntry = {
   createdAt: Date;
 };
 
+const ADD_ALLOWED_ROLES = ["coadmin", "admin"] as const;
+const VERIFY_ALLOWED_ROLES = ["manager", "admin"] as const;
+
+async function getAuthenticatedAdmin() {
+  const session = await auth();
+  if (!session?.user?.email) {
+    return {
+      success: false as const,
+      error: "Unauthorized - Please login again",
+    };
+  }
+
+  const admin = await AdminModel.findOne({ email: session.user.email });
+  if (!admin) {
+    return {
+      success: false as const,
+      error: "Admin not found",
+    };
+  }
+
+  return {
+    success: true as const,
+    admin,
+  };
+}
+
+function hasAllowedRole(role: string, allowedRoles: readonly string[]) {
+  return allowedRoles.includes(role);
+}
+
 export async function GetAllGCEvents() {
   try {
     await connectDB();
@@ -63,6 +93,18 @@ export async function GetAllGCItems() {
 export async function CreateGCEvent(name: string) {
   try {
     await connectDB();
+
+    const authResult = await getAuthenticatedAdmin();
+    if (!authResult.success) {
+      return authResult;
+    }
+
+    if (!hasAllowedRole(authResult.admin.role, ADD_ALLOWED_ROLES)) {
+      return {
+        success: false,
+        error: "Only coadmin or admin can add refreshment entries",
+      };
+    }
 
     // Check if event already exists (case-insensitive)
     const existingEvent = await GCEvent.findOne({
@@ -108,6 +150,18 @@ export async function CreateGCEvent(name: string) {
 export async function CreateGCItem(name: string) {
   try {
     await connectDB();
+
+    const authResult = await getAuthenticatedAdmin();
+    if (!authResult.success) {
+      return authResult;
+    }
+
+    if (!hasAllowedRole(authResult.admin.role, ADD_ALLOWED_ROLES)) {
+      return {
+        success: false,
+        error: "Only coadmin or admin can add refreshment entries",
+      };
+    }
 
     // Check if item already exists (case-insensitive)
     const existingItem = await GCItem.findOne({
@@ -160,11 +214,15 @@ export async function AddRefreshmentEntry(data: RefreshmentEntryData) {
   try {
     await connectDB();
 
-    const session = await auth();
-    if (!session?.user?.email) {
+    const authResult = await getAuthenticatedAdmin();
+    if (!authResult.success) {
+      return authResult;
+    }
+
+    if (!hasAllowedRole(authResult.admin.role, ADD_ALLOWED_ROLES)) {
       return {
         success: false,
-        error: "Unauthorized - Please login again",
+        error: "Only coadmin or admin can add refreshment entries",
       };
     }
 
@@ -183,14 +241,7 @@ export async function AddRefreshmentEntry(data: RefreshmentEntryData) {
       };
     }
 
-    // Get admin from database
-    const admin = await AdminModel.findOne({ email: session.user.email });
-    if (!admin) {
-      return {
-        success: false,
-        error: "Admin not found",
-      };
-    }
+    const admin = authResult.admin;
 
     // Verify event exists
     const eventExists = await GCEvent.findById(data.eventId);
@@ -337,19 +388,18 @@ export async function VerifyRefreshmentEntry(entryId: string) {
   try {
     await connectDB();
 
-    const session = await auth();
-    if (!session?.user?.email) {
+    const authResult = await getAuthenticatedAdmin();
+    if (!authResult.success) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: authResult.error,
       };
     }
 
-    const admin = await AdminModel.findOne({ email: session.user.email });
-    if (!admin || admin.role !== "admin") {
+    if (!hasAllowedRole(authResult.admin.role, VERIFY_ALLOWED_ROLES)) {
       return {
         success: false,
-        error: "Only admins can verify entries",
+        error: "Only manager or admin can verify entries",
       };
     }
 
@@ -386,19 +436,18 @@ export async function VerifyMultipleRefreshmentEntries(entryIds: string[]) {
   try {
     await connectDB();
 
-    const session = await auth();
-    if (!session?.user?.email) {
+    const authResult = await getAuthenticatedAdmin();
+    if (!authResult.success) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: authResult.error,
       };
     }
 
-    const admin = await AdminModel.findOne({ email: session.user.email });
-    if (!admin || admin.role !== "admin") {
+    if (!hasAllowedRole(authResult.admin.role, VERIFY_ALLOWED_ROLES)) {
       return {
         success: false,
-        error: "Only admins can verify entries",
+        error: "Only manager or admin can verify entries",
       };
     }
 
@@ -427,19 +476,18 @@ export async function DeleteRefreshmentEntry(entryId: string) {
   try {
     await connectDB();
 
-    const session = await auth();
-    if (!session?.user?.email) {
+    const authResult = await getAuthenticatedAdmin();
+    if (!authResult.success) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: authResult.error,
       };
     }
 
-    const admin = await AdminModel.findOne({ email: session.user.email });
-    if (!admin) {
+    if (!hasAllowedRole(authResult.admin.role, VERIFY_ALLOWED_ROLES)) {
       return {
         success: false,
-        error: "Admin not found",
+        error: "Only manager or admin can delete entries",
       };
     }
 
@@ -465,19 +513,18 @@ export async function DeleteMultipleRefreshmentEntries(entryIds: string[]) {
   try {
     await connectDB();
 
-    const session = await auth();
-    if (!session?.user?.email) {
+    const authResult = await getAuthenticatedAdmin();
+    if (!authResult.success) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: authResult.error,
       };
     }
 
-    const admin = await AdminModel.findOne({ email: session.user.email });
-    if (!admin) {
+    if (!hasAllowedRole(authResult.admin.role, VERIFY_ALLOWED_ROLES)) {
       return {
         success: false,
-        error: "Admin not found",
+        error: "Only manager or admin can delete entries",
       };
     }
 
