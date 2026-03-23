@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ComplaintsList } from "./complaints-list";
 
-
 type Complaint = {
   _id: string;
   userId: string;
@@ -37,7 +36,7 @@ export default function ComplaintsPage() {
     };
 
     fetchComplaints();
-  }, []);
+  }, [page, limit]);
 
   return (
     <div className="container max-w-screen-lg m-auto space-y-8">

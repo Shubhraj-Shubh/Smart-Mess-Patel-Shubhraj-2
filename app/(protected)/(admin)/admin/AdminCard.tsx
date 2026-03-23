@@ -24,7 +24,6 @@ type AdminType = {
 export default function AdminCard({
   admin,
   adminId,
-  adminRole,
 }: {
   admin: AdminType;
   adminId: string;
@@ -45,9 +44,7 @@ export default function AdminCard({
     }
   }
 
-  async function changeRole(
-    newRole: "admin" | "coadmin" | "manager"
-  ) {
+  async function changeRole(newRole: "admin" | "coadmin" | "manager") {
     try {
       if (newRole === admin.role) {
         toast.info("Already in this role");
