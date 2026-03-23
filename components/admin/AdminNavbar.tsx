@@ -14,8 +14,8 @@ export default async function AdminNavbar() {
 
   return (
     <header className="px-8 mb-4 pt-20">
-      <nav className="flex items-center justify-between py-2">
-        <ul className="flex px-4 gap-4">
+      <nav className="py-2">
+        <ul className="mx-auto flex max-w-5xl flex-wrap justify-center gap-4 px-4">
           {admin.role === "admin" && (
             <>
               <li>
@@ -138,6 +138,16 @@ export default async function AdminNavbar() {
                   </Button>
                 </Link>
               </li>
+              <li>
+                <Link href="/utensil-fine">
+                  <Button
+                    type="button"
+                    className="bg-secondary text-primary hover:bg-secondary"
+                  >
+                    Utensil Fine
+                  </Button>
+                </Link>
+              </li>
             </>
           )}
 
@@ -170,6 +180,16 @@ export default async function AdminNavbar() {
                     className="bg-secondary text-primary hover:bg-secondary"
                   >
                     Workers
+                  </Button>
+                </Link>
+              </li>
+              <li>
+                <Link href="/utensil-fine">
+                  <Button
+                    type="button"
+                    className="bg-secondary text-primary hover:bg-secondary"
+                  >
+                    Utensil Fine
                   </Button>
                 </Link>
               </li>

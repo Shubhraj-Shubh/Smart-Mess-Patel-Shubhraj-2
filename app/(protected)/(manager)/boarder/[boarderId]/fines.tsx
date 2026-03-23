@@ -32,8 +32,7 @@ export default function FinesPage({
 
     const cursor = lastFine?._id;
 
-    const res = await getMoreFines(boarderId, cursor, LIMIT);
-    console.log(res);
+    const res = await getMoreFines(boarderId, cursor, LIMIT, true);
 
     if (res.length < LIMIT) setHasMore(false);
 
@@ -59,6 +58,19 @@ export default function FinesPage({
       if (current) observer.unobserve(current);
     };
   }, [fetchMore]);
+
+  const markFinePaidInList = (fineId: string) => {
+    setFines((prev) =>
+      prev.map((fine) =>
+        fine._id === fineId
+          ? {
+              ...fine,
+              paid: true,
+            }
+          : fine
+      )
+    );
+  };
 
   const removeFine = (fineId: string) => {
     setFines((prev) => prev.filter((fine) => fine._id !== fineId));
@@ -92,7 +104,7 @@ export default function FinesPage({
             {dateHeader}
             <FineCard
               fine={fine}
-              onFineCleared={removeFine}
+              onFineCleared={markFinePaidInList}
               onFineUpdated={updateFineInList}
               onFineDeleted={removeFine}
               adminRole={adminRole}

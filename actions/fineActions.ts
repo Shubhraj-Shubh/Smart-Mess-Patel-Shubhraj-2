@@ -6,9 +6,15 @@ import { auth } from "@/lib/auth";
 import { GetAdmin } from "./adminActions";
 import { revalidatePath } from "next/cache";
 
-export const getFines = async (userId: string, limit = 10) => {
+export const getFines = async (userId: string, limit = 10, includePaid = false) => {
   try {
-    const fines = await FineModel.find({ userId, paid: false })
+    const query: { userId: string; paid?: boolean } = { userId };
+
+    if (!includePaid) {
+      query.paid = false;
+    }
+
+    const fines = await FineModel.find(query)
       .sort({ createdAt: "desc" })
       .limit(limit)
       .lean();
@@ -38,13 +44,23 @@ export const getFines = async (userId: string, limit = 10) => {
 export async function getMoreFines(
   boarderId: string,
   cursor: string,
-  limit = 10
+  limit = 10,
+  includePaid = false
 ) {
-  const fines = await FineModel.find({
+  const query: {
+    userId: ObjectId;
+    _id: { $lt: ObjectId };
+    paid?: boolean;
+  } = {
     userId: new ObjectId(boarderId),
-    paid: false,
     _id: { $lt: new ObjectId(cursor) },
-  })
+  };
+
+  if (!includePaid) {
+    query.paid = false;
+  }
+
+  const fines = await FineModel.find(query)
     .sort({ _id: -1 })
     .limit(limit)
     .lean();

@@ -4,18 +4,29 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function BoarderCostsAndFinesNav() {
-  const [activeTab, setActiveTab] = useState<"costs" | "fines">("costs");
+  const [activeTab, setActiveTab] = useState<"costs" | "fines" | "utensil">(
+    "costs"
+  );
 
   const handleCostsClick = () => {
     setActiveTab("costs");
     document.getElementById("boarder-costs-section")?.classList.remove("hidden");
     document.getElementById("boarder-fines-section")?.classList.add("hidden");
+    document.getElementById("boarder-utensil-section")?.classList.add("hidden");
   };
 
   const handleFinesClick = () => {
     setActiveTab("fines");
     document.getElementById("boarder-costs-section")?.classList.add("hidden");
     document.getElementById("boarder-fines-section")?.classList.remove("hidden");
+    document.getElementById("boarder-utensil-section")?.classList.add("hidden");
+  };
+
+  const handleUtensilClick = () => {
+    setActiveTab("utensil");
+    document.getElementById("boarder-costs-section")?.classList.add("hidden");
+    document.getElementById("boarder-fines-section")?.classList.add("hidden");
+    document.getElementById("boarder-utensil-section")?.classList.remove("hidden");
   };
 
   return (
@@ -31,6 +42,16 @@ export default function BoarderCostsAndFinesNav() {
         className={activeTab === "fines" ? "bg-purple-500 hover:bg-purple-600" : "bg-slate-400 hover:bg-slate-500"}
       >
         Fines
+      </Button>
+      <Button
+        onClick={handleUtensilClick}
+        className={
+          activeTab === "utensil"
+            ? "bg-amber-600 hover:bg-amber-700"
+            : "bg-slate-400 hover:bg-slate-500"
+        }
+      >
+        Utensil Fine
       </Button>
     </div>
   );

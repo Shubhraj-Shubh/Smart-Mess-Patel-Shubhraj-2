@@ -11,10 +11,11 @@ type BoarderType = {
   session: number;
   amount: number;
   fineAmount: number;
+  utensilFineAmount: number;
 };
 
 export default function BoarderCard({ boarder, serialNo }: { boarder: BoarderType; serialNo: number }) {
-  const total = boarder.amount + boarder.fineAmount;
+  const total = boarder.amount + boarder.fineAmount + (boarder.utensilFineAmount || 0);
   return (
     <>
       <Link
@@ -27,6 +28,7 @@ export default function BoarderCard({ boarder, serialNo }: { boarder: BoarderTyp
         <div className="w-full text-center">{boarder.rollno}</div>
         <div className="w-full text-center">{boarder.amount || 0}</div>
         <div className="w-full text-center">{boarder.fineAmount}</div>
+        <div className="w-full text-center">{boarder.utensilFineAmount || 0}</div>
         <div className="w-full text-center font-bold text-red-600">{total}</div>
       </Link>
     </>

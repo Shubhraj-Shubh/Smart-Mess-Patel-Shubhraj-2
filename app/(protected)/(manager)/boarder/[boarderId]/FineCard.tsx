@@ -73,6 +73,9 @@ export default function FineCard({
       <div className="w-full text-center">
         {fine.createdAt.getHours() + ":" + fine.createdAt.getMinutes()}
       </div>
+      <div className="w-full text-center font-medium">
+        {fine.paid ? "Paid" : "Unpaid"}
+      </div>
       {adminRole === "admin" && (
         <div className="w-full text-center flex items-center justify-center gap-2">
           <EditFineButton
@@ -100,27 +103,29 @@ export default function FineCard({
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm" variant="outline">
-                Mark Paid
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Mark fine as paid?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will mark the fine as paid.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleClear}>
+          {!fine.paid && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="outline">
                   Mark Paid
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Mark fine as paid?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will mark the fine as paid.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClear}>
+                    Mark Paid
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       )}
     </div>

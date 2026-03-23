@@ -20,6 +20,10 @@ import { searchBoardersWithNameSession } from "@/actions/boarderActions";
 import { clearAllBoardersCosts } from "@/actions/dashboardActions";
 import { clearAllFinesSystem } from "@/actions/fineActions";
 import {
+  clearAllUtensilFinesSystem,
+  getUtensilFineTotalsByBoarderIds,
+} from "@/actions/UtensilFineAction";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -43,6 +47,7 @@ type BoarderType = {
   secret: string;
   amount: number;
   fineAmount: number;
+  utensilFineAmount: number;
 };
 
 export default function Boarders({ previous, adminRole }: { previous: BoarderType[], adminRole?: string }) {
@@ -108,13 +113,21 @@ export default function Boarders({ previous, adminRole }: { previous: BoarderTyp
       15
     );
 
-    const tableColumns = ["Name", "Roll No", "Amount", "Fine", "Total"];
+    const tableColumns = [
+      "Name",
+      "Roll No",
+      "Amount",
+      "Fine",
+      "Utensil Fine",
+      "Total",
+    ];
     const tableRows = boarders.map((item) => [
       item.name,
       item.rollno,
       item.amount ?? "-",
       item.fineAmount ?? "-",
-      (item.amount ?? 0) + (item.fineAmount ?? 0),
+      item.utensilFineAmount ?? "-",
+      (item.amount ?? 0) + (item.fineAmount ?? 0) + (item.utensilFineAmount ?? 0),
     ]);
 
     doc.autoTable({
@@ -145,7 +158,16 @@ export default function Boarders({ previous, adminRole }: { previous: BoarderTyp
       Number(selectedSession)
     );
 
-    setBoarders(data);
+    const totals = await getUtensilFineTotalsByBoarderIds(
+      data.map((item) => item._id)
+    );
+
+    setBoarders(
+      data.map((item) => ({
+        ...item,
+        utensilFineAmount: totals[item._id] ?? 0,
+      }))
+    );
   };
 
   const handleClearAllCosts = async () => {
@@ -206,6 +228,7 @@ export default function Boarders({ previous, adminRole }: { previous: BoarderTyp
               <div className="w-full text-center">Roll No</div>
               <div className="w-full text-center">Amount</div>
               <div className="w-full text-center">Fine</div>
+              <div className="w-full text-center">Utensil Fine</div>
               <div className="w-full text-center">Total</div>
             </div>
             {boarders.map((boarder, index) => (
@@ -268,6 +291,35 @@ export default function Boarders({ previous, adminRole }: { previous: BoarderTyp
                     router.refresh();
                   } else {
                     toast.error("Failed to clear fines");
+                  }
+                }}>
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full bg-amber-600 hover:bg-amber-700">
+                  Clear All Utensil Fines
+                </Button>
+              </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear all boarders utensil fines?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will mark ALL unpaid applied utensil fines as paid.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={async () => {
+                  const res = await clearAllUtensilFinesSystem();
+                  if (res === "success") {
+                    toast.success("All utensil fines cleared");
+                    router.refresh();
+                  } else {
+                    toast.error("Failed to clear utensil fines");
                   }
                 }}>
                   Continue

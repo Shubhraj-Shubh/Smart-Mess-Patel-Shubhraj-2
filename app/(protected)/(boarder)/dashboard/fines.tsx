@@ -19,6 +19,9 @@ function FineCardBoarder({ fine }: FineCardBoarderProps) {
       <div className="w-full text-center">
         {fine.createdAt.getHours() + ":" + fine.createdAt.getMinutes()}
       </div>
+      <div className="w-full text-center font-medium">
+        {fine.paid ? "Paid" : "Unpaid"}
+      </div>
     </div>
   );
 }
@@ -46,7 +49,7 @@ export default function FinesPageBoarder({
 
     const cursor = lastFine?._id;
 
-    const res = await getMoreFines(boarderId, cursor, LIMIT);
+    const res = await getMoreFines(boarderId, cursor, LIMIT, true);
 
     if (res.length < LIMIT) setHasMore(false);
 

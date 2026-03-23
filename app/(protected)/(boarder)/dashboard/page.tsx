@@ -5,6 +5,11 @@ import { getBoarder } from "@/actions/boarderActions";
 import CostsPage from "./costs";
 import FinesPageBoarder from "./fines";
 import BoarderCostsAndFinesNav from "./BoarderCostsAndFinesNav";
+import BoarderUtensilPage from "./utensil";
+import {
+  getUtensilFineTotalForBoarder,
+  getUtensilHistoryForBoarder,
+} from "@/actions/UtensilFineAction";
 
 export type Cost = {
   _id: string;
@@ -31,6 +36,18 @@ export type Fine = {
   updatedAt: Date;
 };
 
+export type UtensilEntry = {
+  _id: string;
+  issuedByWorkerName: string;
+  returnedToWorkerName: string;
+  fineAmount: number;
+  fineApplied: boolean;
+  paid: boolean;
+  issuedAt: Date;
+  dueAt: Date;
+  returnedAt: Date | null;
+};
+
 const LIMIT = 50;
 
 export default async function Dasboard() {
@@ -42,13 +59,18 @@ export default async function Dasboard() {
   if (!boarder) return null;
 
   const costs: Cost[] = await getCosts(boarder._id as string, LIMIT);
-  const fines: Fine[] = await getFines(boarder._id as string, LIMIT);
+  const fines: Fine[] = await getFines(boarder._id as string, LIMIT, true);
+  const utensilEntries: UtensilEntry[] = await getUtensilHistoryForBoarder(
+    boarder._id as string,
+    LIMIT
+  );
+  const utensilFineTotal = await getUtensilFineTotalForBoarder(boarder._id as string);
 
   return (
     <div className="pb-20">
       <h1 className="text-center text-2xl my-8"> Dashboard </h1>
 
-      <div className="max-w-screen-xl m-auto mb-6 flex gap-4">
+      <div className="max-w-screen-xl m-auto mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="flex-1 bg-gradient-to-r from-red-900 to-orange-800 text-white p-6 rounded-lg shadow-lg">
           <h2 className="text-lg font-semibold mb-2">Amount Due</h2>
           <p className="text-4xl font-bold">₹ {boarder.amount}</p>
@@ -59,10 +81,15 @@ export default async function Dasboard() {
           <p className="text-4xl font-bold">₹ {boarder.fineAmount}</p>
           <p className="text-sm mt-2 opacity-90">Outstanding fines</p>
         </div>
-        <div className="flex-1 bg-gradient-to-r from-green-900 to-teal-800 text-white p-6 rounded-lg shadow-lg">
+        <div className="flex-1 bg-gradient-to-r from-amber-900 to-yellow-700 text-white p-6 rounded-lg shadow-lg">
+          <h2 className="text-lg font-semibold mb-2">Utensil Fine Due</h2>
+          <p className="text-4xl font-bold">₹ {utensilFineTotal}</p>
+          <p className="text-sm mt-2 opacity-90">Late utensil returns</p>
+        </div>
+          <div className="flex-1 bg-gradient-to-r from-green-900 to-teal-800 text-white p-6 rounded-lg shadow-lg">
           <h2 className="text-lg font-semibold mb-2">Total Due</h2>
-          <p className="text-4xl font-bold">₹ {boarder.amount + boarder.fineAmount}</p>
-          <p className="text-sm mt-2 opacity-90">Amount + Fine</p>
+          <p className="text-4xl font-bold">₹ {boarder.amount + boarder.fineAmount + utensilFineTotal}</p>
+          <p className="text-sm mt-2 opacity-90">Amount + Fine + Utensil Fine</p>
         </div>
       </div>
 
@@ -83,8 +110,20 @@ export default async function Dasboard() {
             <div className="w-full text-center">Reason</div>
             <div className="w-full text-center">Added By</div>
             <div className="w-full text-center">Time</div>
+            <div className="w-full text-center">Status</div>
           </div>
           <FinesPageBoarder boarderId={boarder._id} lastFines={fines} />
+        </div>
+        <div id="boarder-utensil-section" className="hidden">
+          <div className="flex border-t p-2 items-center justify-around">
+            <div className="w-full text-center">Issued By</div>
+            <div className="w-full text-center">Taken By</div>
+            <div className="w-full text-center">Issued Time</div>
+            <div className="w-full text-center">Returned Time</div>
+            <div className="w-full text-center">Due Time</div>
+            <div className="w-full text-center">Fine Status</div>
+          </div>
+          <BoarderUtensilPage boarderId={boarder._id} lastEntries={utensilEntries} />
         </div>
       </div>
     </div>
